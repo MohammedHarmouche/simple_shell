@@ -13,14 +13,14 @@ void exit(shell_t *ptrs)
 	exit_string = ptrs->input_token[1];
 	if (exit_string != NULL || ptrs == NULL)
 	{
-		err = 0;
+		errno = 0;
 		for (i = 0; exit_string[i] != '\0'; i++)
-			err = err * 10 + (exit_string[i] - '0');
+			errno = errno * 10 + (exit_string[i] - '0');
 	}
 	free_shell_t(ptrs);
-	if (err > 255)
-		err %= 256;
-	exit(err);
+	if (errno > 255)
+		errno %= 256;
+	exit(errno);
 }
 
 /**
@@ -45,5 +45,5 @@ void print_environment(shell_t *ptrs)
 			write(STDOUT_FILENO, &new_line, 1);
 		}
 	}
-	err = 0;
+	errno = 0;
 }
