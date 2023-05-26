@@ -2,59 +2,64 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/wait.h>
 #include <string.h>
 
-#define MAX_CMD_LEN 100
+#define MAX_COMMAND_LENGTH 100
 
 /**
- * The main: function serves as the entry point for the program.
- * It implements a simple UNIX command line interpreter (shell).
- * The shell displays a prompt, waits for the user to enter a command,
- * executes the command, and repeats the process until the user exits.
+ * Simple UNIX command line interpreter.
  *
- * @return (0)
+ * This program acts as a simple shell, interpreting 
+ * one-word commands and executing them using execvp.
+ * The shell displays a prompt, waits for the user 
+ * to enter a command, executes the command, and then
+ * displays the prompt again.
+ *
+ * If an executable cannot be found, it prints 
+ * an error message and displays the prompt again.
+ * The shell handles the "end of file" condition (Ctrl+D).
+ *
+ * @return 0 on successful execution.
  */
-
 int main(void)
 {
-        char cmd[MAX_CMD_LEN];
-        char *args[2] = {NULL};
-        int status;
+	char command[MAX_COMMAND_LENGTH];
 
-        pid_t pid;
+	while (1)
+	{
+		printf("simple_shell$");
+		fflush(stdout);
 
-        while (1)
-        {
-                printf("Myshell>");
-                fgets(cmd, MAX_CMD_LEN, stdin);
+		if (fgets(command, MAX_COMMAND_LENGTH, stdin) == NULL)
+		{
+			printf("\n");
+			break;
+		}
 
-                if (cmd[0] == '\n')
-                {
-                        continue;
-                }
+		command[strcspn(command, "\n")] = '\0';
 
-                cmd[strcspn(cmd, "\n")] = '\0';
-                args[0] = cmd;
+		pid_t pid = fork();
 
-                pid = fork();
+		if (pid == -1)
 
-                if (pid < 0)
-                {
-                        perror("fork");
-                        continue;
-                }
-                else if (pid == 0)
-                {
-                        execve(args[0], args, NULL);
-                        perror("execve");
-                        exit(EXIT_FAILURE);
-                }
+		{
+			perror("fork");
+			exit(EXIT_FAILURE);
+		}
+		else if (pid == 0)
+		{
+			execlp(command, command, NULL);
 
-                else
-                {
-                        waitpid(pid, &status, 0);
-                }
-        }
-        return (0);
+			perror("exec");
+			exit(EXIT_FAILURE);
+		}
+		else
+		{
+			int status;
+
+			waitpid(pid, &status, 0);
+
+		}
+	}
+	return (0);
 }
